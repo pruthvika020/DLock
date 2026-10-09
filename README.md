@@ -1,45 +1,48 @@
-# DLock 🔐
-### A C-Based Client-Server Locking Project
+# 🔐 DLock — Multithreaded Resource Locking System
 
-DLock is a C-based systems programming project featuring separate client and server programs. It uses GCC and POSIX thread support during compilation.
+A C-based client-server application that provides synchronized resource locking using TCP sockets, POSIX threads, mutexes, and condition variables.
 
-The project provides an opportunity to explore systems programming, concurrent programming, client-server design, and build automation in a Linux environment.
+DLock demonstrates how multiple clients can request access to shared named resources while the server coordinates lock ownership and access.
 
-## ✨ Project Highlights
+## 🚀 Features
 
-- **C Programming:** Implemented using C.
-- **Client-Server Architecture:** Separate client and server executables.
-- **Multithreading Support:** Compiled with POSIX thread support using `-pthread`.
-- **Build Automation:** Uses a Makefile to simplify compilation.
-- **Compiler Warnings:** Uses `-Wall` and `-Wextra` to help identify potential issues.
-- **Modular Organization:** Separates source files and header files into dedicated directories.
+- **TCP Client-Server Communication:** Uses TCP sockets for reliable communication between clients and the server.
+- **Multithreaded Server:** Handles multiple client connections using POSIX threads.
+- **Resource Locking:** Clients can request exclusive access to named resources.
+- **Thread Synchronization:** Uses pthread mutexes and condition variables to coordinate concurrent lock requests.
+- **Lock Ownership:** Only the client that owns a lock can release it.
+- **Automatic Lock Cleanup:** Releases locks owned by a client when its connection ends.
+- **Resource Status:** Displays whether registered resources are locked or free.
+- **Event Logging:** Records lock acquisition, release, and client disconnection events in `dlock.log`.
+- **Makefile Build:** Compiles the client and server using GCC.
 
 ## 🛠️ Technologies Used
 
 - C
-- GCC Compiler
-- GNU Make
+- GCC
 - POSIX Threads (Pthreads)
+- TCP/IP Sockets
 - Linux / Ubuntu
+- GNU Make
 - Git and GitHub
 
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```text
 DLock/
-├── include/          # Header files
 ├── src/
-│   ├── server.c      # Server implementation
-│   └── client.c      # Client implementation
-├── logs/             # Log directory
-├── Makefile          # Build instructions
-├── dlock_server      # Compiled server executable
-├── dlock_client      # Compiled client executable
-├── dlock.log         # Log file, if generated
-└── README.md         # Project documentation
+│   ├── server.c       # Multithreaded locking server
+│   └── client.c       # Interactive TCP client
+├── include/           # Header files
+├── logs/              # Log directory
+├── Makefile           # Build configuration
+├── README.md          # Project documentation
+└── dlock.log          # Server event log, generated at runtime
 ```
 
-## 📋 Prerequisites
+The `dlock_server` and `dlock_client` executables are generated during compilation.
+
+## ⚙️ Prerequisites
 
 Install GCC, GNU Make, and Git on Ubuntu:
 
@@ -48,65 +51,119 @@ sudo apt update
 sudo apt install build-essential git -y
 ```
 
-## 🚀 Getting Started
+## 📥 Installation
 
-### 1. Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/pruthvika020/DLock.git
 cd DLock
 ```
 
-### 2. Compile the project
+## 🔨 Build
 
-Build both executables using the Makefile:
+Compile both the server and client:
 
 ```bash
 make
 ```
 
-The Makefile compiles the server and client using:
+The Makefile uses the following compiler options:
 
 ```bash
-gcc -Wall -Wextra -pthread src/server.c -o dlock_server
-gcc -Wall -Wextra -pthread src/client.c -o dlock_client
+-Wall -Wextra -pthread
 ```
 
-### 3. Clean generated executables
+These enable additional compiler warnings and POSIX thread support.
 
-To remove the compiled binaries:
+To remove the compiled executables:
 
 ```bash
 make clean
 ```
 
-## ▶️ Running the Project
+## ▶️ Running DLock
 
-After compilation, run the server and client according to the program's requirements.
+### 1. Start the server
 
-For example, if both programs run independently:
-
-**Terminal 1 — Server**
+In the first terminal:
 
 ```bash
 ./dlock_server
 ```
 
-**Terminal 2 — Client**
+The server listens on TCP port `5000`.
+
+### 2. Start a client
+
+In a second terminal, from the same project directory:
 
 ```bash
 ./dlock_client
 ```
 
-Check the source code for any required arguments, configuration, or startup order before running the programs.
+The client connects to `127.0.0.1:5000`, so the default setup runs the client and server on the same machine.
 
-## 🎯 Learning Objectives
+You can launch additional client instances in separate terminals to test concurrent access.
 
-- Practice C programming and Linux systems development.
-- Understand the organization of client-server applications.
-- Explore POSIX thread support and concurrent programming.
-- Automate compilation with GNU Make.
-- Use Git and GitHub for source-code management.
+## 💻 Available Commands
+
+Enter the following commands at the `dlock>` prompt.
+
+| Command | Description |
+|---|---|
+| `LOCK file1` | Acquire the lock for a named resource |
+| `UNLOCK file1` | Release a lock owned by the current client |
+| `STATUS` | Display registered resources and their lock states |
+| `QUIT` | Disconnect the client |
+
+### Example Session
+
+```text
+dlock> LOCK file1
+Server: GRANTED file1
+
+dlock> STATUS
+Server: file1=LOCKED
+
+dlock> UNLOCK file1
+Server: UNLOCKED file1
+
+dlock> STATUS
+Server: file1=FREE
+
+dlock> QUIT
+Server: BYE
+```
+
+## 🧠 How It Works
+
+1. The server creates a TCP socket and listens for incoming client connections.
+2. Each accepted connection is handled by a separate server thread.
+3. A client sends commands to request, release, or inspect resource locks.
+4. The server protects its shared lock table with a mutex.
+5. If a resource is locked by another client, the requesting thread waits on a condition variable until the resource becomes available.
+6. When a lock is released, waiting threads are notified so they can compete to acquire it.
+7. When a client disconnects, the server releases the locks owned by that connection.
+
+## 🎯 Learning Outcomes
+
+- Socket programming using TCP/IP.
+- Multithreaded server development in C.
+- Synchronization using mutexes and condition variables.
+- Coordination of concurrent access to shared resources.
+- Client-server protocol design.
+- Build automation using GNU Make.
+- Source control with Git and GitHub.
+
+## 🔮 Future Improvements
+
+- Add configurable server addresses and ports.
+- Introduce authentication and access control.
+- Add lock timeouts and client request limits.
+- Improve error handling and network protocol robustness.
+- Add automated tests for concurrent lock requests.
+- Support persistent resource management and more detailed monitoring.
 
 ## 👩‍💻 Author
 
@@ -114,6 +171,4 @@ Check the source code for any required arguments, configuration, or startup orde
 
 GitHub: [@pruthvika020](https://github.com/pruthvika020)
 
-## 📄 License
 
-No license has been specified yet. Add a license if you intend to define the terms under which others may use or distribute this project.
